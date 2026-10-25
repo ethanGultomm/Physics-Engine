@@ -66,12 +66,6 @@ The build output goes in the `build/` folder. Run the generated executable.
 .\build\2Dsim.exe
 ```
 
-### Controls
-
-| Key   | Action           |
-|-------|------------------|
-| `Esc` | Close the window |
-
 ## How It Works
 
 The simulation and the rendering are kept separate.
