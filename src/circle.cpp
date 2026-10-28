@@ -103,3 +103,7 @@ void Circle::setProjection(float width, float height){
     glUseProgram(shaderProgram);
     glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection));
 }
+
+float Circle::getBoundingRadius(){
+    return radius;
+}

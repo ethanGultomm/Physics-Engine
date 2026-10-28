@@ -16,9 +16,12 @@ void World::addCircle(float radius, float x, float y, int res,float width, float
 
 void World::update(float dt){
     // this is where things like gravity, collision, world borders and things happens
+    // world constraints
+    applyBorderConstraints();
+    // add gravity
     for(auto&body : bodies){
-        body->velocity.y += this->gravity;
-        body->position += body->velocity;
+        body->velocity.y += this->gravity * dt;
+        body->position += body->velocity * dt;
     }
 }
 
@@ -32,5 +35,36 @@ void World::render(){
 void World::setProjection(float width, float height){
     for(auto& body : bodies){
         body->shape->setProjection(width, height);
+    }
+}
+
+void World::applyBorderConstraints(){
+    for(auto&body : bodies){
+        float r = body->shape->getBoundingRadius();
+
+        // Left Wall
+        if (body->position.x - r < -borderX){
+            body->position.x = r - borderX;
+            body->velocity.x *= -body->restitution;
+        }
+
+        // Right Wall
+        if (body->position.x + r > borderX){
+            body->position.x = borderX - r;
+            body->velocity.x *= -body->restitution;
+        }
+
+        // Lower Wall
+        if (body->position.y - r < -borderY){
+            body->position.y = r - borderY;
+            body->velocity.y *= -body->restitution;
+            body->velocity.x *= friction;
+        }
+
+        // Upper Wall
+        if (body->position.y + r > borderY){
+            body->position.y = borderY - r;
+            body->velocity.y *= -body->restitution;
+        }
     }
 }

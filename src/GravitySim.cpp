@@ -45,7 +45,7 @@ int main(){
     GLfloat windowWidth = 1300.0f;
     GLfloat windowHeight = 1000.0f;
 
-    GLFWwindow* window = glfwCreateWindow(windowWidth, windowHeight, "cock-and-ball-inator 3000", NULL, NULL);
+    GLFWwindow* window = glfwCreateWindow(windowWidth, windowHeight, "Physics Engine", NULL, NULL);
     if (!window){
         glfwTerminate();
         cerr << "creating window failed" << endl;
@@ -65,7 +65,7 @@ int main(){
 
     // the circles parameters
     int const res = 50;
-    GLfloat radius = 20.0f;    // value in pixels
+    GLfloat radius = 10.0f;    // value in pixels
     radius = radius / (windowHeight / 2);   //convert to absolute value (0.0 - 1.0)
 
     // creating one ball
@@ -85,13 +85,6 @@ int main(){
         // input
         processInput(window);
 
-        // create 5 balls and put them all in the balls vector
-        // if(ballsCount < 5){
-        //     world.addCircle(radius, spawnCenter[0], spawnCenter[1], res, windowWidth, windowHeight, glm::vec2(0.0f, 0.0f));
-        //     spawnCenter[0] += 0.2;
-        //     ballsCount++;
-        // }
-
         double currentTime = glfwGetTime();
         // updates eevery frameTime
         if ((currentTime - prevTime) >= frameTime){
@@ -99,11 +92,12 @@ int main(){
             glClearColor(0.12f, 0.12f, 0.12f, 1.0f);
             glClear(GL_COLOR_BUFFER_BIT);
 
-            if(frameCount == 4){
+            // spamming circles in a circular pattern
+            if(frameCount == 2){
                 glm::vec2 velocity;
-                float angle = 2.0f * 3.14159265359 * (static_cast<float>(angleCount) / 30);
-                velocity.x = cos(angle) * 0.04;
-                velocity.y = sin(angle) * 0.04;
+                float angle = 2.0f * 3.14159265359 * (static_cast<float>(angleCount) / 50);
+                velocity.x = cos(angle) * 2.0;
+                velocity.y = sin(angle) * 2.0;
                 world.addCircle(radius, 0.0f, 0.0f, res, windowWidth, windowHeight, velocity);
                 angleCount++;
                 frameCount = 0;
@@ -122,7 +116,7 @@ int main(){
 
     glfwDestroyWindow(window);
     glfwTerminate();
-    exit(EXIT_FAILURE);
+    exit(EXIT_SUCCESS);
 }
 
 // TODO: 

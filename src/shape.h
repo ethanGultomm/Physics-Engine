@@ -6,4 +6,6 @@ class Shape{
     virtual ~Shape() = default;
     virtual void draw(const glm::vec2& position) = 0;
     virtual void setProjection(float width, float height) = 0;
+    // for circles
+    virtual float getBoundingRadius() = 0;
 };

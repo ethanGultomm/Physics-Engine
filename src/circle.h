@@ -36,4 +36,5 @@ class Circle : public Shape{
     void generateVertices();
     void draw(const glm::vec2& position) override;
     void setProjection(float width, float height) override;
+    float getBoundingRadius() override;
 };
