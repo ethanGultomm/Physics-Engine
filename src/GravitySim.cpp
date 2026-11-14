@@ -9,6 +9,10 @@
 #include <stdlib.h>
 #include <cmath>
 
+#include <imgui.h>
+#include <imgui_impl_glfw.h>
+#include <imgui_impl_opengl3.h>
+
 #include <world.h>
 using namespace std;
 
@@ -29,6 +33,50 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height){
 
     if(world){
         world->setProjection((float)width, (float)height);
+    }
+}
+
+//                                 R     B     G
+glm::vec4 circleColor = glm::vec4(1.0f, 0.0f, 0.0f, 1.0f);
+int state = 0;
+int increment = 50;
+float incrementValue = 1.0f / increment;
+
+// increments the color in a rainbow fashion
+void colorWheel(){
+    switch (state)
+    {
+    case 0: // If RED is the only one max = add blue
+        circleColor[1] += incrementValue;
+        if (circleColor[1] >= 1.0f) {circleColor[1] = 1.0f; state = 1;}
+        break;
+    
+    case 1: // if RED is max and BLUE is max = lower red
+        circleColor[0] -= incrementValue;
+        if (circleColor[0] <= 0.0f) {circleColor[0] = 0.0f; state = 2;}
+        break;
+    
+    case 2: // if BLUE is the only one max = add green
+        circleColor[2] += incrementValue;
+        if (circleColor[2] >= 1.0f) {circleColor[2] = 1.0f; state = 3;}
+        break;
+    
+    case 3: //if BLUE and GREEN is max = lower blue
+        circleColor[1] -= incrementValue;
+        if (circleColor[1] <= 0.0f) {circleColor[1] = 0.0f; state = 4;}
+        break;
+    
+    case 4: // if GREEN is the only one max = add red
+        circleColor[0] += incrementValue;
+        if (circleColor[0] >= 1.0f) {circleColor[0] = 1.0f; state = 5;}
+        break;
+
+    case 5: // if GREEN and RED is max = lower green
+        circleColor[2] -= incrementValue;
+        if (circleColor[2] <= 0.0f) {circleColor[2] = 0.0f; state = 0;}
+        break;
+    default:
+        break;
     }
 }
 
@@ -63,17 +111,19 @@ int main(){
     glViewport(0, 0, windowWidth, windowHeight);
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImGui::StyleColorsDark();
+    ImGui_ImplGlfw_InitForOpenGL(window, true);  // true = ImGui installs GLFW callbacks
+    ImGui_ImplOpenGL3_Init("#version 330");      // match the GLSL version your shaders use
+
     // the circles parameters
     int const res = 50;
     GLfloat radius = 10.0f;    // value in pixels
     radius = radius / (windowHeight / 2);   //convert to absolute value (0.0 - 1.0)
 
-    // creating one ball
     World world;
     glfwSetWindowUserPointer(window, &world);
-
-    // add one circle object to balls, this will be the one that moves
-    // world.addCircle(radius, 0.0f, 0.0f, res, windowWidth, windowHeight, glm::vec2(0.01f, 0.05f));
 
     double prevTime = glfwGetTime();
     const double frameTime = 1.0 / 60;  // 60hz
@@ -96,16 +146,32 @@ int main(){
             if(frameCount == 2){
                 glm::vec2 velocity;
                 float angle = 2.0f * 3.14159265359 * (static_cast<float>(angleCount) / 50);
-                velocity.x = cos(angle) * 2.0;
-                velocity.y = sin(angle) * 2.0;
-                world.addCircle(radius, 0.0f, 0.0f, res, windowWidth, windowHeight, velocity);
+                velocity.x = cos(angle) * 100.0;
+                velocity.y = sin(angle) * 100.0;
+                world.addCircle(radius, 0.0f, 0.0f, res, windowWidth, windowHeight, velocity, circleColor);
+                colorWheel(); // increments the color in a wheel fashion
                 angleCount++;
                 frameCount = 0;
+                
             }
             
             world.update(frameTime);
             world.render();
             prevTime = glfwGetTime();
+
+            // ImGui stuff
+            ImGui_ImplOpenGL3_NewFrame();
+            ImGui_ImplGlfw_NewFrame();
+            ImGui::NewFrame();
+
+            ImGui::Begin("Stats");
+            ImGui::Text("total circles: %zu", world.bodies.size());
+            ImGui::Text("fps: %.1f", ImGui::GetIO().Framerate);
+            if (ImGui::Button("clear circles")) {world.clearCircles();}
+            ImGui::End();
+
+            ImGui::Render();
+            ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
             // check and call events and swap the buffers
             glfwSwapBuffers(window);
@@ -113,6 +179,10 @@ int main(){
             frameCount++;
         }
     }
+
+    ImGui_ImplOpenGL3_Shutdown();
+    ImGui_ImplGlfw_Shutdown();
+    ImGui::DestroyContext();
 
     glfwDestroyWindow(window);
     glfwTerminate();

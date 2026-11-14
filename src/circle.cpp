@@ -2,7 +2,7 @@
 #include "glad/glad.h"
 #include <GLFW/glfw3.h>
 
-Circle::Circle(float radius, int res){
+Circle::Circle(float radius, int res, glm::vec4 color):color(color){
     this->radius = radius;
     this->res = res;
 
@@ -29,6 +29,7 @@ Circle::Circle(float radius, int res){
 
     modelLoc = glGetUniformLocation(shaderProgram, "model");
     projLoc = glGetUniformLocation(shaderProgram, "projection");
+    colorLoc = glGetUniformLocation(shaderProgram, "color");
 
     init();
 }
@@ -88,6 +89,7 @@ void Circle::generateVertices(){
 // draw the circle with a set position
 void Circle::draw(const glm::vec2& position){
     glUseProgram(shaderProgram);
+    glUniform4fv(colorLoc, 1, glm::value_ptr(color));
 
     // create model matrix (move circle)
     glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(position.x, position.y, 0.0f));

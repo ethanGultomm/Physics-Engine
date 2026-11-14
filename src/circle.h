@@ -10,9 +10,10 @@
 class Circle : public Shape{
   private:
     int res;
+    glm::vec4 color;
     std::vector<float> vertices;
     std::vector<uint32_t>indices;
-    uint32_t VAO, VBO, EBO, shaderProgram, modelLoc, projLoc;
+    uint32_t VAO, VBO, EBO, shaderProgram, modelLoc, projLoc, colorLoc;
     const char* vertexShaderSource = "#version 330 core\n"
     "layout (location = 0) in vec3 aPos;\n"
     "uniform mat4 model;\n"
@@ -23,14 +24,16 @@ class Circle : public Shape{
     "}\0";
     const char* fragmentShaderSource = "#version 330 core\n"
     "out vec4 FragColor;\n"
+    "uniform vec4 color;\n"
     "void main()\n"
     "{\n"
-    "	FragColor = vec4(0.96f, 0.19f, 0.29f, 1.0f);\n"
+    "	FragColor = color;\n"
     "}\n\0";
 
+    // old color: vec4(0.96f, 0.19f, 0.29f, 1.0f)
   public:
     float radius;
-    Circle(float radius, int res);
+    Circle(float radius, int res, glm::vec4 color = glm::vec4(0.96f, 0.19f, 0.29f, 1.0f));
     ~Circle() override;
     void init();
     void generateVertices();
