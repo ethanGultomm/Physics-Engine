@@ -57,10 +57,11 @@ Then configure and build with the `vcpkg` preset. vcpkg reads `vcpkg.json` and i
 
 ```bash
 cmake --preset vcpkg
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build
 ```
 
-The build output goes in the `build/` folder. Run the generated executable.
+The build output can be found in the created `build/` folder. Run the generated executable.
 
 ```bash
 .\build\2Dsim.exe
@@ -70,17 +71,19 @@ The build output goes in the `build/` folder. Run the generated executable.
 
 The simulation and the rendering are kept separate.
 
-- **`World`** owns a list of rigid bodies. Each frame it applies the border constraints, then updates every body, then renders them.
-- **`RigidBody`** holds a position, velocity, mass, restitution, and a polymorphic `Shape`.
+- **`World`** owns a list of rigid bodies. Each frame it applies the physics, updates the bodies accordingly, then renders them.
+- **`RigidBody`** holds a position, acceleration, mass, restitution, and a polymorphic `Shape`.
 - **`Shape` / `Circle`** know how to draw themselves. A circle is drawn as a triangle fan (50 segments by default) from its own vertex array and buffers, and frees its OpenGL resources in its destructor.
 
 ### Each simulation step
 
 1. Gravity is added to each body's velocity.
-2. Each body moves by its velocity (semi-implicit Euler integration).
-3. Bodies that cross a wall are pushed back inside the container and their velocity is reflected, scaled by the restitution (0.7) so every bounce loses energy. Floor contact also applies friction.
+2. The bodies are moved accordingly using Verlet integration
+3. apply border constraints, keeping the bodies in a container
+4. apply collision detection & resolve.
 
-The step runs at a fixed 60 Hz.
+Each simulation step runs at a fixed 60 Hz.
+For border constraints and collision, the process is repeated 8 times per simulation step for a better simulation accuracy.
 
 ## Project Structure
 

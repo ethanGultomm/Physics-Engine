@@ -7,6 +7,7 @@
 #include <chrono>
 #include <vector>
 #include <stdlib.h>
+#include <ctime>
 #include <cmath>
 
 #include <imgui.h>
@@ -81,6 +82,7 @@ void colorWheel(){
 }
 
 int main(){
+    std::srand(std::time(nullptr));
     glfwSetErrorCallback(error_callback);
 
     if (!glfwInit())
@@ -114,17 +116,20 @@ int main(){
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGui::StyleColorsDark();
-    ImGui_ImplGlfw_InitForOpenGL(window, true);  // true = ImGui installs GLFW callbacks
-    ImGui_ImplOpenGL3_Init("#version 330");      // match the GLSL version your shaders use
+    ImGui_ImplGlfw_InitForOpenGL(window, true);
+    ImGui_ImplOpenGL3_Init("#version 330");
 
     // the circles parameters
     int const res = 50;
-    GLfloat radius = 10.0f;    // value in pixels
-    radius = radius / (windowHeight / 2);   //convert to absolute value (0.0 - 1.0)
+    int maxRadius = 20;    // value in pixels
+    int minRadius = 5;
+    float maxRadiusAbsolute = maxRadius / (windowHeight / 2);
 
     World world;
     glfwSetWindowUserPointer(window, &world);
 
+    world.setGrid(maxRadiusAbsolute);
+    bool spawn = true;
     double prevTime = glfwGetTime();
     const double frameTime = 1.0 / 60;  // 60hz
     int ballsCount = 0;
@@ -136,23 +141,25 @@ int main(){
         processInput(window);
 
         double currentTime = glfwGetTime();
-        // updates eevery frameTime
+        // updates every frameTime
         if ((currentTime - prevTime) >= frameTime){
             // render commands here
             glClearColor(0.12f, 0.12f, 0.12f, 1.0f);
             glClear(GL_COLOR_BUFFER_BIT);
 
             // spamming circles in a circular pattern
-            if(frameCount == 2){
+            if(spawn){frameCount++;}
+            if(frameCount >= 1){
                 glm::vec2 velocity;
+                GLfloat radius = static_cast<GLfloat>((std::rand() % maxRadius) + 5);
+                GLfloat r = radius / (windowHeight / 2);   //convert to absolute value (0.0 - 1.0)
                 float angle = 2.0f * 3.14159265359 * (static_cast<float>(angleCount) / 50);
                 velocity.x = cos(angle) * 100.0;
                 velocity.y = sin(angle) * 100.0;
-                world.addCircle(radius, 0.0f, 0.0f, res, windowWidth, windowHeight, velocity, circleColor);
+                world.addCircle(r, 0.5f, 0.5f, res, windowWidth, windowHeight, velocity, circleColor);
                 colorWheel(); // increments the color in a wheel fashion
                 angleCount++;
                 frameCount = 0;
-                
             }
             
             world.update(frameTime);
@@ -165,9 +172,11 @@ int main(){
             ImGui::NewFrame();
 
             ImGui::Begin("Stats");
-            ImGui::Text("total circles: %zu", world.bodies.size());
+            ImGui::Text("total circles: %zu", world.getBodiesCount());
             ImGui::Text("fps: %.1f", ImGui::GetIO().Framerate);
             if (ImGui::Button("clear circles")) {world.clearCircles();}
+            if (ImGui::Button("toggle spawning")) {spawn = !spawn;}
+            if (ImGui::Button("toggle gravity mode")) {world.switchGravity();}
             ImGui::End();
 
             ImGui::Render();
@@ -176,7 +185,6 @@ int main(){
             // check and call events and swap the buffers
             glfwSwapBuffers(window);
             glfwPollEvents();
-            frameCount++;
         }
     }
 
